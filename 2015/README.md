@@ -1,12 +1,3 @@
-# Advent-Of-Code-2015
+# 2015
 
-In this repository you can find solutions to the various daily challenges from **Advent of Code 2015**.
-
-Check their page and have fun while programming:
-https://adventofcode.com/2015/
-
-## Challenge Completed
-
-Challenge completed!
-
-![AoC-2015](https://user-images.githubusercontent.com/25830462/60013684-f4454b00-9676-11e9-8a28-c797a02c0d82.png)
+<img width="913" alt="image" src="https://github.com/xRuiAlves/advent-of-code/assets/25830462/5c404c66-90d0-4080-ac96-8e138ee3a678">
