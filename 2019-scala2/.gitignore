@@ -1,0 +1,9 @@
+# Scala
+*.class
+*.log
+
+# IntelliJ
+.idea/
+
+# Other
+*.iml
