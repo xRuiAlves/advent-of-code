@@ -1,0 +1,14 @@
+{
+  "name": "advent-of-code-2016",
+  "version": "1.0.0",
+  "description": "Advent of Code (AoC) 2016",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "md5": "^2.2.1"
+  }
+}
