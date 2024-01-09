@@ -1,0 +1,16 @@
+{
+  "name": "advent-of-code-2015",
+  "version": "1.0.0",
+  "description": "Advent of Code (AoC) 2015",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "collections": "^5.1.9",
+    "js-combinatorics": "^0.5.4",
+    "md5": "^2.2.1"
+  }
+}
