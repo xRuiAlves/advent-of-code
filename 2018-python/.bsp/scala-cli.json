@@ -1,0 +1,16 @@
+{
+  "name": "scala-cli",
+  "argv": [
+    "/opt/homebrew/bin/scala-cli",
+    "bsp",
+    "--json-options",
+    "/Users/ralves/Repos/Advent-Of-Code-2018/.scala-build/ide-options-v2.json",
+    "/Users/ralves/Repos/Advent-Of-Code-2018/Day23.scala"
+  ],
+  "version": "1.0.4",
+  "bspVersion": "2.1.0-M5",
+  "languages": [
+    "scala",
+    "java"
+  ]
+}
