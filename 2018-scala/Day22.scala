@@ -48,10 +48,11 @@ object Day22 {
 
   object Input {
     def fromArray(arr: Array[String]): Input = arr match {
-      case Array(s"depth: $depth", s"target: $x,$y") => Input(
-        Coord(x.toInt, y.toInt),
-        depth.toInt
-      )
+      case Array(s"depth: $depth", s"target: $x,$y") =>
+        Input(
+          Coord(x.toInt, y.toInt),
+          depth.toInt
+        )
     }
   }
 
@@ -67,7 +68,7 @@ object Day22 {
           else if (coord.y == 0) coord.x * ErosionMultiplierX
           else if (coord.x == 0) coord.y * ErosionMultiplierY
           else getErosionLevel(Coord(coord.x, coord.y - 1)) * getErosionLevel(Coord(coord.x - 1, coord.y))
-          ) % ErosionLevelModulo
+        ) % ErosionLevelModulo
         geologicIndexes(coord)
     }
 
@@ -107,10 +108,12 @@ object Day22 {
         visited.addOne(curr.visitState)
 
         // Tool Switch
-        toVisit.enqueue(SearchState(
-          VisitState(curr.visitState.coord, getPossibleToolSwitch(map, curr.visitState)),
-          curr.distance + ToolSwitchCost
-        ))
+        toVisit.enqueue(
+          SearchState(
+            VisitState(curr.visitState.coord, getPossibleToolSwitch(map, curr.visitState)),
+            curr.distance + ToolSwitchCost
+          )
+        )
 
         // Moving
         getNeighborCoords(map, curr.visitState).foreach(neighborCoord => {
@@ -123,28 +126,29 @@ object Day22 {
   }
 
   def getPossibleToolSwitch(map: Map, visitState: VisitState): Tool = getPossibleToolSwitch(
-    map(visitState.coord.y)(visitState.coord.x), visitState.tool
+    map(visitState.coord.y)(visitState.coord.x),
+    visitState.tool
   )
-  def getPossibleToolSwitch(regionType: RegionType, currTool: Tool): Tool = Tool
-    .values
+  def getPossibleToolSwitch(regionType: RegionType, currTool: Tool): Tool = Tool.values
     .filter(_ != currTool)
     .filter(otherTool => isValidTool(regionType, otherTool))
     .head
 
   def getNeighborCoords(map: Map, visitState: VisitState): Array[Coord] = visitState.coord match {
-    case Coord(x, y) => Array(
-      Coord(x + 1, y),
-      Coord(x - 1, y),
-      Coord(x, y + 1),
-      Coord(x, y - 1)
-    )
-      .filter(neighborCoord => isInBounds(map, neighborCoord))
-      .filter(neighborCoord => isValidTool(map(neighborCoord.y)(neighborCoord.x), visitState.tool))
+    case Coord(x, y) =>
+      Array(
+        Coord(x + 1, y),
+        Coord(x - 1, y),
+        Coord(x, y + 1),
+        Coord(x, y - 1)
+      )
+        .filter(neighborCoord => isInBounds(map, neighborCoord))
+        .filter(neighborCoord => isValidTool(map(neighborCoord.y)(neighborCoord.x), visitState.tool))
   }
 
   def isValidTool(regionType: RegionType, tool: Tool): Boolean = regionType match {
-    case RegionType.Rocky => tool != Tool.Neither
-    case RegionType.Wet => tool != Tool.Torch
+    case RegionType.Rocky  => tool != Tool.Neither
+    case RegionType.Wet    => tool != Tool.Torch
     case RegionType.Narrow => tool != Tool.ClimbingGear
   }
 
