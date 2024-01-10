@@ -1,5 +1,3 @@
-# Advent of Code 2018
+# 2018
 
-Solutions for [Advent of Code 2018](https://adventofcode.com/2018), written in Scala.
-
-I had already solved part of [this year's event in Python in another repository](https://github.com/xRuiAlves/Advent-Of-Code-2018). However, I felt like I wanted to do the remaining challenges in Scala, and created this repo as a follow up!
+<img width="915" alt="image" src="https://github.com/xRuiAlves/advent-of-code/assets/25830462/e766892d-2720-4ecf-91f6-ce5eac7f4587">
