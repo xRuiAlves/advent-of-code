@@ -9,8 +9,10 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 object Day24 {
-  private[this] final val weaknessesPattern = "weak to (?<weaknesses>\\w+(, \\w+)*)".r
-  private[this] final val immunitiesPattern = "immune to (?<immunities>\\w+(, \\w+)*)".r
+  private[this] final val WeaknessesPattern = "weak to (?<weaknesses>\\w+(, \\w+)*)".r
+  private[this] final val ImmunitiesPattern = "immune to (?<immunities>\\w+(, \\w+)*)".r
+
+  private[this] final val ImmuneSystemArmy = "Immune System"
 
   def main(args: Array[String]): Unit = {
     val input = readResourceLines("day24.txt")
@@ -21,8 +23,8 @@ object Day24 {
       .map(army => army.name -> army)
       .toMap
 
-    val part1 = updateArmies(armiesMap).armyResults.map(_.units).max
-    val part2 = 0
+    val part1 = updateArmies(armiesMap).winningArmyUnits
+    val part2 = searchMinBoost(armiesMap)
 
     println(s"Part 1: $part1")
     println(s"Part 2: $part2")
@@ -52,8 +54,8 @@ object Day24 {
 
   def parseGroup(groupStr: String): Group = groupStr match
     case s"$units units each with $hp hit points ${modifiers}with an attack that does $attackDamage $attackType damage at initiative $initiative" =>
-      val weaknesses = weaknessesPattern.findFirstMatchIn(modifiers).map(_.group("weaknesses")).getOrElse("").split(", ").toSet
-      val immunities = immunitiesPattern.findFirstMatchIn(modifiers).map(_.group("immunities")).getOrElse("").split(", ").toSet
+      val weaknesses = WeaknessesPattern.findFirstMatchIn(modifiers).map(_.group("weaknesses")).getOrElse("").split(", ").toSet
+      val immunities = ImmunitiesPattern.findFirstMatchIn(modifiers).map(_.group("immunities")).getOrElse("").split(", ").toSet
       Group(units.toInt, hp.toInt, weaknesses, immunities, attackType, attackDamage.toInt, initiative.toInt)
 
   def getDamage(attackingGroup: Group, defendingGroup: Group): Int = {
@@ -141,16 +143,36 @@ object Day24 {
   }
 
   case class ArmyResult(name: String, units: Int)
-  case class BattleResult(armyResults: Array[ArmyResult])
+  case class BattleResult(armyResults: Array[ArmyResult]) {
+    lazy final val winningArmyName = armyResults.find(_.units != 0).map(_.name).getOrElse("Draw")
+    lazy final val winningArmyUnits = armyResults.map(_.units).max
+  }
 
   def getBattleResult(armiesMap: Map[String, Army]): BattleResult = BattleResult(armiesMap.map {
     case (name, army) => ArmyResult(name, army.groups.map(_._2.units).sum)
   }.toArray)
 
   @tailrec
-  def updateArmies(currArmies: Map[String, Army]): BattleResult = {
+  def updateArmies(currArmies: Map[String, Army], visited: Set[Seq[Int]] = Set()): BattleResult = {
     val battleResult = getBattleResult(currArmies)
-    if (battleResult.armyResults.map(_.units).contains(0)) battleResult
-    else updateArmies(attackRound(currArmies))
+    val visitState = battleResult.armyResults.map(_.units).toSeq
+
+    if (visited.contains(visitState)) BattleResult(Array())
+    else if (battleResult.armyResults.map(_.units).contains(0)) battleResult
+    else updateArmies(attackRound(currArmies), visited + visitState)
+  }
+
+  def boostImmuneSystem(armiesMap: Map[String, Army], boost: Int): Map[String, Army] = armiesMap.updated(ImmuneSystemArmy, Army(
+    armiesMap(ImmuneSystemArmy).groups.map {
+      case (groupId, group) => groupId -> group.copy(attackDamage = group.attackDamage + boost)
+    },
+    ImmuneSystemArmy
+  ))
+
+  @tailrec
+  def searchMinBoost(armiesMap: Map[String, Army], boost: Int = 0): Int = {
+    val res = updateArmies(boostImmuneSystem(armiesMap, boost))
+    if (res.winningArmyName == ImmuneSystemArmy) res.winningArmyUnits
+    else searchMinBoost(armiesMap, boost + 1)
   }
 }
