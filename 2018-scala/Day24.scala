@@ -30,6 +30,8 @@ object Day24 {
     println(s"Part 2: $part2")
   }
 
+  type ArmyMap = Map[String, Army]
+
   case class Army(groups: Map[Int, Group], name: String)
 
   case class Group(
@@ -42,6 +44,20 @@ object Day24 {
     initiative: Int
   ) {
     lazy final val effectivePower: Int = units * attackDamage
+  }
+
+  case class Selection(
+    attackingGroupId: Int,
+    attackingGroupArmy: String,
+    defendingGroupId: Int,
+    defendingGroupArmy: String
+  )
+
+  case class ArmyResult(name: String, units: Int)
+
+  case class BattleResult(armyResults: Array[ArmyResult]) {
+    lazy final val winningArmyName = armyResults.find(_.units != 0).map(_.name).getOrElse("Draw")
+    lazy final val winningArmyUnits = armyResults.map(_.units).max
   }
 
   def parseArmy(armyStr: String): Army = Army(armyStr
@@ -68,13 +84,6 @@ object Day24 {
 
   def attack(attackingGroup: Group, defendingGroup: Group): Group = defendingGroup.copy(
     units = math.max(0, math.ceil((defendingGroup.units * defendingGroup.hp - getDamage(attackingGroup, defendingGroup)) / defendingGroup.hp.toDouble).toInt)
-  )
-
-  case class Selection(
-    attackingGroupId: Int,
-    attackingGroupArmy: String,
-    defendingGroupId: Int,
-    defendingGroupArmy: String
   )
 
   def selection(attackingArmy: Army, defendingArmy: Army): Array[Selection] = {
@@ -105,7 +114,7 @@ object Day24 {
     selections.toArray
   }
 
-  def attacks(armiesMap: Map[String, Army]): Array[Selection] = {
+  def attacks(armiesMap: ArmyMap): Array[Selection] = {
     val armies = armiesMap.values
     val army1 = armies.head
     val army2 = armies.last
@@ -115,7 +124,7 @@ object Day24 {
       .reverse
   }
 
-  def attackRound(armiesMap: Map[String, Army]): Map[String, Army] = attacks(armiesMap).foldLeft(armiesMap) {
+  def attackRound(armiesMap: ArmyMap): ArmyMap = attacks(armiesMap).foldLeft(armiesMap) {
     case (currArmies, selection) =>
       val attackingGroup = currArmies(selection.attackingGroupArmy).groups.get(selection.attackingGroupId)
       val defendingGroup = currArmies(selection.defendingGroupArmy).groups.get(selection.defendingGroupId)
@@ -142,18 +151,12 @@ object Day24 {
     else group2._2.initiative < group1._2.initiative
   }
 
-  case class ArmyResult(name: String, units: Int)
-  case class BattleResult(armyResults: Array[ArmyResult]) {
-    lazy final val winningArmyName = armyResults.find(_.units != 0).map(_.name).getOrElse("Draw")
-    lazy final val winningArmyUnits = armyResults.map(_.units).max
-  }
-
-  def getBattleResult(armiesMap: Map[String, Army]): BattleResult = BattleResult(armiesMap.map {
+  def getBattleResult(armiesMap: ArmyMap): BattleResult = BattleResult(armiesMap.map {
     case (name, army) => ArmyResult(name, army.groups.map(_._2.units).sum)
   }.toArray)
 
   @tailrec
-  def updateArmies(currArmies: Map[String, Army], visited: Set[Seq[Int]] = Set()): BattleResult = {
+  def updateArmies(currArmies: ArmyMap, visited: Set[Seq[Int]] = Set()): BattleResult = {
     val battleResult = getBattleResult(currArmies)
     val visitState = battleResult.armyResults.map(_.units).toSeq
 
@@ -162,7 +165,7 @@ object Day24 {
     else updateArmies(attackRound(currArmies), visited + visitState)
   }
 
-  def boostImmuneSystem(armiesMap: Map[String, Army], boost: Int): Map[String, Army] = armiesMap.updated(ImmuneSystemArmy, Army(
+  def boostImmuneSystem(armiesMap: ArmyMap, boost: Int): ArmyMap = armiesMap.updated(ImmuneSystemArmy, Army(
     armiesMap(ImmuneSystemArmy).groups.map {
       case (groupId, group) => groupId -> group.copy(attackDamage = group.attackDamage + boost)
     },
@@ -170,7 +173,7 @@ object Day24 {
   ))
 
   @tailrec
-  def searchMinBoost(armiesMap: Map[String, Army], boost: Int = 0): Int = {
+  def searchMinBoost(armiesMap: ArmyMap, boost: Int = 0): Int = {
     val res = updateArmies(boostImmuneSystem(armiesMap, boost))
     if (res.winningArmyName == ImmuneSystemArmy) res.winningArmyUnits
     else searchMinBoost(armiesMap, boost + 1)
