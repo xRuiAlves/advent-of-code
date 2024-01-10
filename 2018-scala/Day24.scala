@@ -35,22 +35,22 @@ object Day24 {
   case class Army(groups: Map[Int, Group], name: String)
 
   case class Group(
-    units: Int,
-    hp: Int,
-    weaknesses: Set[String],
-    immunities: Set[String],
-    attackType: String,
-    attackDamage: Int,
-    initiative: Int
+      units: Int,
+      hp: Int,
+      weaknesses: Set[String],
+      immunities: Set[String],
+      attackType: String,
+      attackDamage: Int,
+      initiative: Int
   ) {
     lazy final val effectivePower: Int = units * attackDamage
   }
 
   case class Selection(
-    attackingGroupId: Int,
-    attackingGroupArmy: String,
-    defendingGroupId: Int,
-    defendingGroupArmy: String
+      attackingGroupId: Int,
+      attackingGroupArmy: String,
+      defendingGroupId: Int,
+      defendingGroupArmy: String
   )
 
   case class ArmyResult(name: String, units: Int)
@@ -60,18 +60,23 @@ object Day24 {
     lazy final val winningArmyUnits = armyResults.map(_.units).max
   }
 
-  def parseArmy(armyStr: String): Army = Army(armyStr
-    .split("\n")
-    .drop(1)
-    .map(parseGroup)
-    .zipWithIndex
-    .map { case (group, i) => (i + 1, group) }
-    .toMap, armyStr.takeWhile(_ != ':'))
+  def parseArmy(armyStr: String): Army = Army(
+    armyStr
+      .split("\n")
+      .drop(1)
+      .map(parseGroup)
+      .zipWithIndex
+      .map { case (group, i) => (i + 1, group) }
+      .toMap,
+    armyStr.takeWhile(_ != ':')
+  )
 
   def parseGroup(groupStr: String): Group = groupStr match
     case s"$units units each with $hp hit points ${modifiers}with an attack that does $attackDamage $attackType damage at initiative $initiative" =>
-      val weaknesses = WeaknessesPattern.findFirstMatchIn(modifiers).map(_.group("weaknesses")).getOrElse("").split(", ").toSet
-      val immunities = ImmunitiesPattern.findFirstMatchIn(modifiers).map(_.group("immunities")).getOrElse("").split(", ").toSet
+      val weaknesses =
+        WeaknessesPattern.findFirstMatchIn(modifiers).map(_.group("weaknesses")).getOrElse("").split(", ").toSet
+      val immunities =
+        ImmunitiesPattern.findFirstMatchIn(modifiers).map(_.group("immunities")).getOrElse("").split(", ").toSet
       Group(units.toInt, hp.toInt, weaknesses, immunities, attackType, attackDamage.toInt, initiative.toInt)
 
   def getDamage(attackingGroup: Group, defendingGroup: Group): Int = {
@@ -83,33 +88,44 @@ object Day24 {
   }
 
   def attack(attackingGroup: Group, defendingGroup: Group): Group = defendingGroup.copy(
-    units = math.max(0, math.ceil((defendingGroup.units * defendingGroup.hp - getDamage(attackingGroup, defendingGroup)) / defendingGroup.hp.toDouble).toInt)
+    units = math.max(
+      0,
+      math
+        .ceil(
+          (defendingGroup.units * defendingGroup.hp - getDamage(
+            attackingGroup,
+            defendingGroup
+          )) / defendingGroup.hp.toDouble
+        )
+        .toInt
+    )
   )
 
   def selection(attackingArmy: Army, defendingArmy: Army): Array[Selection] = {
     val selections = mutable.ArrayBuffer[Selection]()
 
-    attackingArmy.groups.toArray.sortWith(selectionChoosingOrder).foreach(attackingGroup => {
-      def selectionAttackingOrder(group1: (Int, Group), group2: (Int, Group)): Boolean = {
-        val damageTo1 = getDamage(attackingGroup._2, group1._2)
-        val damageTo2 = getDamage(attackingGroup._2, group2._2)
+    attackingArmy.groups.toArray
+      .sortWith(selectionChoosingOrder)
+      .foreach(attackingGroup => {
+        def selectionAttackingOrder(group1: (Int, Group), group2: (Int, Group)): Boolean = {
+          val damageTo1 = getDamage(attackingGroup._2, group1._2)
+          val damageTo2 = getDamage(attackingGroup._2, group2._2)
 
-        if (damageTo1 != damageTo2) damageTo2 < damageTo1
-        else selectionChoosingOrder(group1, group2)
-      }
+          if (damageTo1 != damageTo2) damageTo2 < damageTo1
+          else selectionChoosingOrder(group1, group2)
+        }
 
-      val maybeDefendingGroup = defendingArmy
-        .groups
-        .toArray
-        .filter(group => !selections.map(_.defendingGroupId).contains(group._1))
-        .sortWith(selectionAttackingOrder)
-        .headOption
+        val maybeDefendingGroup = defendingArmy.groups.toArray
+          .filter(group => !selections.map(_.defendingGroupId).contains(group._1))
+          .sortWith(selectionAttackingOrder)
+          .headOption
 
-      maybeDefendingGroup match {
-        case Some(defendingGroup) => selections.addOne(Selection(attackingGroup._1, attackingArmy.name, defendingGroup._1, defendingArmy.name))
-        case None =>
-      }
-    })
+        maybeDefendingGroup match {
+          case Some(defendingGroup) =>
+            selections.addOne(Selection(attackingGroup._1, attackingArmy.name, defendingGroup._1, defendingArmy.name))
+          case None =>
+        }
+      })
 
     selections.toArray
   }
@@ -133,10 +149,11 @@ object Day24 {
       else {
         val defendingGroupAfterAttack = attack(attackingGroup.get, defendingGroup.get)
         val updatedGroups =
-          if (defendingGroupAfterAttack.units != 0) currArmies(selection.defendingGroupArmy).groups.updated(
-            selection.defendingGroupId,
-            defendingGroupAfterAttack
-          )
+          if (defendingGroupAfterAttack.units != 0)
+            currArmies(selection.defendingGroupArmy).groups.updated(
+              selection.defendingGroupId,
+              defendingGroupAfterAttack
+            )
           else currArmies(selection.defendingGroupArmy).groups.removed(selection.defendingGroupId)
 
         currArmies.updated(
@@ -151,8 +168,8 @@ object Day24 {
     else group2._2.initiative < group1._2.initiative
   }
 
-  def getBattleResult(armiesMap: ArmyMap): BattleResult = BattleResult(armiesMap.map {
-    case (name, army) => ArmyResult(name, army.groups.map(_._2.units).sum)
+  def getBattleResult(armiesMap: ArmyMap): BattleResult = BattleResult(armiesMap.map { case (name, army) =>
+    ArmyResult(name, army.groups.map(_._2.units).sum)
   }.toArray)
 
   @tailrec
@@ -165,12 +182,15 @@ object Day24 {
     else updateArmies(attackRound(currArmies), visited + visitState)
   }
 
-  def boostImmuneSystem(armiesMap: ArmyMap, boost: Int): ArmyMap = armiesMap.updated(ImmuneSystemArmy, Army(
-    armiesMap(ImmuneSystemArmy).groups.map {
-      case (groupId, group) => groupId -> group.copy(attackDamage = group.attackDamage + boost)
-    },
-    ImmuneSystemArmy
-  ))
+  def boostImmuneSystem(armiesMap: ArmyMap, boost: Int): ArmyMap = armiesMap.updated(
+    ImmuneSystemArmy,
+    Army(
+      armiesMap(ImmuneSystemArmy).groups.map { case (groupId, group) =>
+        groupId -> group.copy(attackDamage = group.attackDamage + boost)
+      },
+      ImmuneSystemArmy
+    )
+  )
 
   @tailrec
   def searchMinBoost(armiesMap: ArmyMap, boost: Int = 0): Int = {
