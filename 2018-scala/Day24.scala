@@ -21,14 +21,7 @@ object Day24 {
       .map(army => army.name -> army)
       .toMap
 
-    @tailrec
-    def updateArmies(currArmies: Map[String, Army]): Int = {
-      val armiesUnits = countArmiesUnits(currArmies)
-      if (armiesUnits.contains(0)) armiesUnits.max
-      else updateArmies(attackRound(currArmies))
-    }
-
-    val part1 = updateArmies(armiesMap)
+    val part1 = updateArmies(armiesMap).armyResults.map(_.units).max
     val part2 = 0
 
     println(s"Part 1: $part1")
@@ -147,5 +140,17 @@ object Day24 {
     else group2._2.initiative < group1._2.initiative
   }
 
-  def countArmiesUnits(armiesMap: Map[String, Army]): Array[Int] = armiesMap.values.map(_.groups.map(_._2.units).sum).toArray
+  case class ArmyResult(name: String, units: Int)
+  case class BattleResult(armyResults: Array[ArmyResult])
+
+  def getBattleResult(armiesMap: Map[String, Army]): BattleResult = BattleResult(armiesMap.map {
+    case (name, army) => ArmyResult(name, army.groups.map(_._2.units).sum)
+  }.toArray)
+
+  @tailrec
+  def updateArmies(currArmies: Map[String, Army]): BattleResult = {
+    val battleResult = getBattleResult(currArmies)
+    if (battleResult.armyResults.map(_.units).contains(0)) battleResult
+    else updateArmies(attackRound(currArmies))
+  }
 }
