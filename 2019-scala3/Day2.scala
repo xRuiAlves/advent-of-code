@@ -38,7 +38,9 @@ object Day2 {
       for (noun <- 0 to 99; verb <- 0 to 99) yield (noun, verb)
 
     possibleNounsAndVerbs
-      .find { case (noun, verb) => runIntcode(program, Map(1 -> noun, 2 -> verb)) == 19690720 }
+      .find { case (noun, verb) =>
+        runIntcode(program, Map(1 -> noun, 2 -> verb)) == 19690720
+      }
       .map { case (noun, verb) => 100 * noun + verb }
       .get
   }
