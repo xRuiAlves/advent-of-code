@@ -27,13 +27,20 @@ object Day2 {
   }
 
   def getSolution(input: String): (Int, Int) = {
-    val part1 = runIntcode(input, Map(
-      1 -> 12,
-      2 -> 2
-    ))
-    val part2 = 0
+    val part1 = runIntcode(input, Map(1 -> 12, 2 -> 2))
+    val part2 = findNounAndVerb(input)
 
     (part1, part2)
+  }
+
+  def findNounAndVerb(program: String): Int = {
+    val possibleNounsAndVerbs =
+      for (noun <- 0 to 99; verb <- 0 to 99) yield (noun, verb)
+
+    possibleNounsAndVerbs
+      .find { case (noun, verb) => runIntcode(program, Map(1 -> noun, 2 -> verb)) == 19690720 }
+      .map { case (noun, verb) => 100 * noun + verb }
+      .get
   }
 
   def runIntcode(program: String, memOverrides: Map[Int, Int] = Map()): Int = {
@@ -53,15 +60,13 @@ object Day2 {
       else if (instructions(ip) == Sum) {
         sum(instructions(ip + 1), instructions(ip + 2), instructions(ip + 3))
         applyInstruction(ip + 4)
-      }
-      else if (instructions(ip) == Mult) {
+      } else if (instructions(ip) == Mult) {
         mult(instructions(ip + 1), instructions(ip + 2), instructions(ip + 3))
         applyInstruction(ip + 4)
-      }
-      else throw new Error(s"Invalid instruction: ${instructions(ip)}")
+      } else throw new Error(s"Invalid instruction: ${instructions(ip)}")
 
-    memOverrides.foreach {
-      case (pointer, value) => instructions(pointer) = value
+    memOverrides.foreach { case (pointer, value) =>
+      instructions(pointer) = value
     }
     applyInstruction(0)
   }
