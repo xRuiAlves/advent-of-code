@@ -27,7 +27,17 @@ object Day2 {
   }
 
   def getSolution(input: String): (Int, Int) = {
-    val instructions = input.split(",").map(_.toInt)
+    val part1 = runIntcode(input, Map(
+      1 -> 12,
+      2 -> 2
+    ))
+    val part2 = 0
+
+    (part1, part2)
+  }
+
+  def runIntcode(program: String, memOverrides: Map[Int, Int] = Map()): Int = {
+    val instructions = program.split(",").map(_.toInt)
 
     def sum(op1: Int, op2: Int, op3: Int) = {
       instructions(op3) = instructions(op1) + instructions(op2)
@@ -50,12 +60,9 @@ object Day2 {
       }
       else throw new Error(s"Invalid instruction: ${instructions(ip)}")
 
-    instructions(1) = 12
-    instructions(2) = 2
-
-    val part1 = applyInstruction(0)
-    val part2 = 0
-
-    (part1, part2)
+    memOverrides.foreach {
+      case (pointer, value) => instructions(pointer) = value
+    }
+    applyInstruction(0)
   }
 }
